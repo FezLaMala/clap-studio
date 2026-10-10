@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https: blob: data:; worker-src 'self' blob:">
+<title>Clap Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Polices proposées pour les sous-titres (l'interface utilise les polices du système) -->
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Anton&family=Bangers&family=Bebas+Neue&family=Caveat:wght@700&family=Lobster&family=Montserrat:ital,wght@0,500;0,700;0,800;1,700&family=Oswald:wght@500;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Poppins:wght@500;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<div class="app" id="app">
+  <header class="top glass-bar">
+    <div class="brand"><span class="logo" aria-hidden="true"></span><b>Clap</b><em>Studio</em></div>
+    <input id="pname" class="pname" value="Mon montage" aria-label="Nom du projet" maxlength="60">
+    <div class="top-actions">
+      <button class="btn icon ghost" id="undo" title="Ctrl+Z" aria-label="Annuler"><i data-ic="undo"></i></button>
+      <button class="btn icon ghost" id="redo" title="Ctrl+Maj+Z" aria-label="Rétablir"><i data-ic="redo"></i></button>
+      <div class="seg-toggle" id="langSw" role="group" aria-label="Langue de l'interface"><button data-l="fr">FR</button><button data-l="en">EN</button></div>
+      <button class="btn" id="btnImport"><i data-ic="upload"></i><span data-i="import"></span></button>
+      <button class="btn" id="btnAuto"><i data-ic="wand"></i><span data-i="auto"></span></button>
+      <button class="btn primary" id="btnExport"><i data-ic="download"></i><span data-i="export"></span></button>
+    </div>
+  </header>
+
+  <main class="main" id="main" data-tab="subs">
+    <div class="tabs-m" role="tablist">
+      <button class="tab on" data-tab="subs" data-i="tabSubs"></button>
+      <button class="tab" data-tab="style" data-i="tabStyle"></button>
+    </div>
+
+    <section class="panel glass list-panel reveal" style="--d:.05s" aria-label="Sous-titres">
+      <div class="ph-h"><h3 data-i="subs"></h3><span class="count" id="count">0</span>
+        <button class="btn sm" id="addSub"><i data-ic="plus"></i><span data-i="add"></span></button></div>
+      <div class="sync-row">
+        <span class="cl" data-i="shift"></span>
+        <button class="btn sm icon ghost" id="shiftMinus" aria-label="Reculer"><i data-ic="minus"></i></button>
+        <input class="num" id="shiftStep" type="number" min="0.01" max="600" step="0.05" value="0.5" aria-label="Pas du décalage (s)">
+        <button class="btn sm icon ghost" id="shiftPlus" aria-label="Avancer"><i data-ic="plus"></i></button>
+        <button class="btn sm ghost" id="alignFirst" data-i="alignFirst"></button>
+      </div>
+      <div class="scroll" id="list"></div>
+    </section>
+
+    <section class="center reveal" style="--d:.15s">
+      <div class="stage-bar">
+        <label for="aspect" class="hint" data-i="format"></label>
+        <select id="aspect" aria-label="Format">
+          <option value="orig" data-i="orig"></option>
+          <option value="16/9">16:9</option>
+          <option value="9/16">9:16</option>
+          <option value="1/1">1:1</option>
+          <option value="4/5">4:5</option>
+        </select>
+        <span class="info" id="info"></span>
+      </div>
+      <div class="stage-wrap" id="stageWrap">
+        <div class="stage" id="stage">
+          <canvas id="demo"></canvas>
+          <video id="vid" playsinline hidden></video>
+          <div class="guide gv" id="gv"></div><div class="guide gh" id="gh"></div>
+          <div class="sub" id="subEl" hidden><div class="sub-in" id="subIn"></div></div>
+          <div class="drop-hint" id="dropHint"><i data-ic="film"></i><span data-i="dropHint"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel glass insp-panel reveal" style="--d:.25s" id="inspPanel" aria-label="Style">
+      <div class="ph-h"><h3 data-i="style"></h3></div>
+      <div class="scroll" id="insp"></div>
+    </section>
+  </main>
+
+  <section class="tl glass reveal" style="--d:.35s" id="tl" aria-label="Timeline">
+    <div class="tl-bar">
+      <button class="btn sm icon ghost" id="tStart" aria-label="Début"><i data-ic="prev"></i></button>
+      <button class="btn sm primary icon play" id="tPlay" aria-label="Lecture" title="Espace"><i data-ic="play"></i></button>
+      <button class="btn sm icon ghost" id="tEnd" aria-label="Fin"><i data-ic="next"></i></button>
+      <div class="tcode" id="tcode">00:00.00</div>
+      <span class="sep"></span>
+      <button class="btn sm" id="tSplit" title="S"><i data-ic="scissors"></i><span data-i="cut"></span></button>
+      <button class="btn sm" id="tRemove" title="Suppr"><i data-ic="trash"></i><span data-i="removePart" id="tRemoveLbl"></span></button>
+      <button class="btn sm" id="tAddSub" title="N"><i data-ic="plus"></i><span data-i="addAtHead"></span></button>
+      <button class="btn sm on" id="tSnap" title="Magnétisme"><i data-ic="magnet"></i><span data-i="snap"></span></button>
+      <div class="zoom"><span data-i="zoom"></span><input type="range" id="zoom" min="5" max="260" step="1" aria-label="Zoom"></div>
+    </div>
+    <div class="tl-body">
+      <div class="tl-labels">
+        <div style="height:56px"><i data-ic="film"></i><span data-i="tVideo"></span></div>
+        <div style="height:44px"><i data-ic="wave"></i><span data-i="tAudio"></span></div>
+        <div style="height:52px"><i data-ic="text"></i><span data-i="tSubs"></span></div>
+      </div>
+      <div class="tl-scroll" id="tlScroll">
+        <div class="tl-inner" id="tlInner">
+          <div class="ruler" id="ruler"></div>
+          <div class="trk v" id="trkV"></div>
+          <div class="trk a" id="trkA"></div>
+          <div class="trk s" id="trkS"></div>
+          <div class="playhead" id="ph"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Import : vidéo et/ou sous-titres -->
+<div class="modal-back" id="mImp" hidden>
+  <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="mImpT">
+    <h2 id="mImpT" data-i="impTitle"></h2>
+    <p data-i="impDesc"></p>
+    <button class="drop-zone" id="impPick"><i data-ic="upload"></i><b data-i="impFiles"></b><span data-i="impFilesHint"></span></button>
+    <div class="cl hint" style="margin:16px 0 6px" data-i="pasteCode"></div>
+    <textarea class="code" id="impText" spellcheck="false"></textarea>
+    <div class="modal-foot">
+      <button class="btn ghost" id="impClose" data-i="close"></button>
+      <button class="btn primary" id="impApply"><i data-ic="check"></i><span data-i="apply"></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Génération automatique -->
+<div class="modal-back" id="mGen" hidden>
+  <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="mGenT">
+    <h2 id="mGenT" data-i="genTitle"></h2>
+    <p data-i="genDesc"></p>
+    <div class="ctl"><label for="genLang" data-i="genLang"></label>
+      <select id="genLang"><option value="fr-FR">Français</option><option value="en-US">English</option></select></div>
+    <div class="ctl"><label for="genMode" data-i="genMode"></label>
+      <select id="genMode"><option value="ai" data-i="modeAi"></option><option value="detect" data-i="modeDetect"></option></select></div>
+    <div class="ctl" id="genModelRow"><label for="genModel" data-i="genModel"></label>
+      <select id="genModel"><option value="Xenova/whisper-tiny" data-i="mTiny"></option><option value="Xenova/whisper-base" data-i="mBase" selected></option><option value="Xenova/whisper-small" data-i="mSmall"></option></select></div>
+    <div class="ctl" id="genSensRow"><label for="genSens" data-i="genSens"></label>
+      <div class="rr"><input type="range" id="genSens" min="8" max="60" value="25"><output class="num" id="genSensO">25</output></div></div>
+    <label class="sw"><input type="checkbox" id="genReplace" checked><i></i><span data-i="genReplace"></span></label>
+    <div class="cl hint" style="margin-bottom:6px" data-i="genScript"></div>
+    <textarea id="genText" placeholder=""></textarea>
+    <div class="modal-foot">
+      <button class="btn ghost" id="genClose" data-i="cancel"></button>
+      <button class="btn" id="genDict"><i data-ic="mic"></i><span data-i="genDict"></span></button>
+      <button class="btn primary" id="genGo"><i data-ic="wand"></i><span data-i="genGo"></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="mProg" hidden>
+  <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="mProgT">
+    <h2 id="mProgT" data-i="progTitle"></h2>
+    <p id="progMsg"></p>
+    <div class="bar ind" id="progBar"><i id="progFill"></i></div>
+  </div>
+</div>
+
+<!-- Export : fichiers de sous-titres ou vidéo avec sous-titres incrustés -->
+<div class="modal-back" id="mExp" hidden>
+  <div class="modal glass wide" role="dialog" aria-modal="true" aria-labelledby="mExpT">
+    <h2 id="mExpT" data-i="export"></h2>
+    <div class="seg-toggle tabs-x" id="expTabs">
+      <button class="on" data-f="srt">SRT</button>
+      <button data-f="vtt">WebVTT</button>
+      <button data-f="json" data-i="expProject"></button>
+      <button data-f="video" data-i="expVideo"></button>
+    </div>
+    <div id="expText">
+      <p data-i="expDesc"></p>
+      <textarea class="code" id="expOut" readonly spellcheck="false"></textarea>
+    </div>
+    <div id="expVid" hidden>
+      <p data-i="expVideoDesc"></p>
+      <div class="bar" id="expBar" hidden><i id="expFill"></i></div>
+      <p class="hint" id="expStatus"></p>
+      <div class="result" id="expResult" hidden></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="expClose" data-i="close"></button>
+      <button class="btn" id="expCopy"><i data-ic="copy"></i><span data-i="copy"></span></button>
+      <button class="btn primary" id="expSave"><i data-ic="download"></i><span data-i="save"></span></button>
+      <button class="btn primary" id="expGo" hidden><i data-ic="film"></i><span data-i="expGo"></span></button>
+      <button class="btn" id="expStop" hidden><span data-i="expStop"></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Mise à jour -->
+<div class="update glass" id="upd" hidden>
+  <div class="upd-txt"><b id="updTitle"></b><span id="updMsg"></span></div>
+  <div class="bar" id="updBar" hidden><i id="updFill"></i></div>
+  <div class="upd-act" id="updAct" hidden>
+    <button class="btn sm ghost" id="updLater" data-i="later"></button>
+    <button class="btn sm primary" id="updGo" data-i="restart"></button>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<input type="file" id="file" multiple accept="video/*,.srt,.vtt,.json,.txt" hidden>
+</body>
+</html>
