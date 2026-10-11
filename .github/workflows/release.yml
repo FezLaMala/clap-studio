@@ -30,6 +30,7 @@ jobs:
           files=(dist/*.exe dist/*.blockmap dist/latest.yml)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "${files[@]}" --clobber
+            gh release edit "$TAG" --draft=false
           else
             gh release create "$TAG" "${files[@]}" --title "Clap Studio ${TAG#v}" --generate-notes
           fi
