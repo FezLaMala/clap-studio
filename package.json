@@ -1,7 +1,7 @@
 {
   "name": "clap-studio",
   "productName": "Clap Studio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Éditeur de sous-titres : génération automatique, import SRT/VTT/JSON, calage, style et export vidéo incrustée.",
   "main": "src/main.js",
   "author": "FezLaMala",
