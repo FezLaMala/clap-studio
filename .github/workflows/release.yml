@@ -1,5 +1,5 @@
 # Construit l'installateur Windows et le publie dans GitHub Releases quand un tag vX.Y.Z est poussé.
-# L'application installée lit ces releases au lancement pour se mettre à jour.
+# L'application installée lit ces releases (latest.yml) au lancement pour se mettre à jour.
 name: Release
 
 on:
@@ -19,6 +19,17 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run release
+      - run: npm run dist
+      # envoi avec gh : la publication intégrée d'electron-builder s'arrêtait avant la fin des envois
+      - name: Publish release
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          files=(dist/*.exe dist/*.blockmap dist/latest.yml)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber
+          else
+            gh release create "$TAG" "${files[@]}" --title "Clap Studio ${TAG#v}" --generate-notes
+          fi
