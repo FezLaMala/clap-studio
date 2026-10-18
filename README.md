@@ -53,11 +53,17 @@ L'installateur est créé dans `dist/` sous le nom `Clap-Studio-Setup-<version>.
 
 3. Le workflow `.github/workflows/release.yml` construit l'installateur et le publie dans une GitHub Release, avec `latest.yml`. Les installations existantes trouvent cette version au prochain lancement.
 
-Ce dépôt est **privé** : GitHub refuse l'accès à ses releases aux installations (404), donc elles ne peuvent pas se mettre à jour depuis ici. Les installateurs sont donc **aussi** publiés dans le dépôt public `FezLaMala/clap-studio-releases`, que l'application lit pour ses mises à jour :
+Ce dépôt est **privé** : GitHub refuse l'accès à ses releases aux installations (404). Les installateurs sont donc **aussi** publiés dans le dépôt public [`ArachnoMLK/clap-studio-releases`](https://github.com/ArachnoMLK/clap-studio-releases) (binaires uniquement, pas de code source), que l'application lit pour ses mises à jour.
 
-1. Créer le dépôt public `FezLaMala/clap-studio-releases` (vide).
-2. Créer un jeton GitHub *fine-grained* avec l'accès **Contents : lecture et écriture** sur ce dépôt, et l'ajouter dans les secrets de `clap-studio` sous le nom `RELEASES_TOKEN`.
-3. Les installations en 1.0.2 ou avant doivent installer une fois à la main la version qui contient ce réglage ; les suivantes arrivent ensuite automatiquement.
+- **Automatique** : ajouter dans les secrets de `clap-studio` un jeton GitHub *fine-grained* nommé `RELEASES_TOKEN`, avec **Contents : lecture et écriture** sur `clap-studio-releases`. Le workflow y publie alors chaque version.
+- **À la main** (sans jeton), une fois le workflow terminé, avec un compte qui a accès aux deux dépôts :
+
+  ```bash
+  gh release download vX.Y.Z -R FezLaMala/clap-studio -D release
+  gh release create vX.Y.Z release/* -R ArachnoMLK/clap-studio-releases --title "Clap Studio X.Y.Z"
+  ```
+
+Les installations en 1.0.2 ou avant doivent installer une fois à la main la 1.0.3 ; les versions suivantes arrivent ensuite automatiquement.
 
 ## Raccourcis
 
