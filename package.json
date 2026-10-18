@@ -1,7 +1,7 @@
 {
   "name": "clap-studio",
   "productName": "Clap Studio",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Éditeur de sous-titres : génération automatique, import SRT/VTT/JSON, calage, style et export vidéo incrustée.",
   "main": "src/main.js",
   "author": "FezLaMala",
@@ -68,8 +68,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "FezLaMala",
-        "repo": "clap-studio",
+        "owner": "ArachnoMLK",
+        "repo": "clap-studio-releases",
         "releaseType": "release"
       }
     ]
