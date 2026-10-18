@@ -69,7 +69,7 @@
       {
         "provider": "github",
         "owner": "FezLaMala",
-        "repo": "clap-studio",
+        "repo": "clap-studio-releases",
         "releaseType": "release"
       }
     ]

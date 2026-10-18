@@ -34,3 +34,20 @@ jobs:
           else
             gh release create "$TAG" "${files[@]}" --title "Clap Studio ${TAG#v}" --generate-notes
           fi
+      # Les installations lisent les mises à jour dans un dépôt PUBLIC (celui-ci est privé : GitHub leur répond 404).
+      # Secret requis : RELEASES_TOKEN, jeton fine-grained avec « Contents : lecture et écriture » sur FezLaMala/clap-studio-releases.
+      - name: Publish for auto-updates (public releases repo)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: FezLaMala/clap-studio-releases
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "::warning::RELEASES_TOKEN absent : cette version ne sera pas proposée aux installations."; exit 0; fi
+          files=(dist/*.exe dist/*.blockmap dist/latest.yml)
+          if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" -R "$REPO" --clobber
+            gh release edit "$TAG" -R "$REPO" --draft=false
+          else
+            gh release create "$TAG" "${files[@]}" -R "$REPO" --title "Clap Studio ${TAG#v}" --notes "Mise à jour de Clap Studio ${TAG#v}."
+          fi
