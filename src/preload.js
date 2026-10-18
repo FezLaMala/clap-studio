@@ -13,4 +13,13 @@ contextBridge.exposeInMainWorld('clap', {
   pathForFile: file => { try { return webUtils.getPathForFile(file) || null; } catch { return null; } },
   pickBackground: () => ipcRenderer.invoke('settings:background'),
   setZoom: f => webFrame.setZoomFactor(f),
+
+  probe: p => ipcRenderer.invoke('media:probe', p),
+  audio: opts => ipcRenderer.invoke('media:audio', opts),
+  cancelAudio: () => ipcRenderer.send('media:cancel'),
+  onAudioProgress: cb => { const h = (_e, f) => cb(f); ipcRenderer.on('media:progress', h); return () => ipcRenderer.removeListener('media:progress', h); },
+  pickMedia: kind => ipcRenderer.invoke('dialog:media', kind),
+  libraryList: cat => ipcRenderer.invoke('library:list', cat),
+  libraryGet: id => ipcRenderer.invoke('library:get', id),
+  libraryPickRoot: () => ipcRenderer.invoke('library:pickRoot'),
 });

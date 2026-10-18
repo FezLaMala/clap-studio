@@ -83,15 +83,21 @@
         <select id="aspect" aria-label="Format">
           <option value="orig" data-i="orig"></option>
           <option value="16/9">16:9</option>
-          <option value="9/16">9:16</option>
+          <option value="9/16">9:16 · TikTok</option>
           <option value="1/1">1:1</option>
           <option value="4/5">4:5</option>
+        </select>
+        <select id="fit" aria-label="Cadrage" hidden>
+          <option value="blur" data-i="fitBlur"></option>
+          <option value="fill" data-i="fitFill"></option>
+          <option value="fit" data-i="fitFit"></option>
         </select>
         <span class="info" id="info"></span>
       </div>
       <div class="stage-wrap" id="stageWrap">
         <div class="stage" id="stage">
           <canvas id="demo"></canvas>
+          <canvas id="bgBlur" hidden></canvas>
           <video id="vid" playsinline crossorigin="anonymous" hidden></video>
           <div class="overlay" id="overlay"></div>
           <div class="guide gv" id="gv"></div><div class="guide gh" id="gh"></div>
@@ -139,6 +145,27 @@
   <button role="menuitem" data-add="sub"><i data-ic="cc"></i><span><b data-i="kSub"></b><small data-i="kSubD"></small></span></button>
   <button role="menuitem" data-add="text"><i data-ic="text"></i><span><b data-i="kText"></b><small data-i="kTextD"></small></span></button>
   <button role="menuitem" data-add="image"><i data-ic="image"></i><span><b data-i="kImage"></b><small data-i="kImageD"></small></span></button>
+  <button role="menuitem" data-add="shape"><i data-ic="shapes"></i><span><b data-i="kShape"></b><small data-i="kShapeD"></small></span></button>
+  <button role="menuitem" data-add="library"><i data-ic="sword"></i><span><b data-i="kLib"></b><small data-i="kLibD"></small></span></button>
+</div>
+
+<!-- Bibliothèque Brawlhalla -->
+<div class="modal-back" id="mLib" hidden>
+  <div class="modal glass wide lib" role="dialog" aria-modal="true" aria-labelledby="mLibT">
+    <h2 id="mLibT" data-i="libTitle"></h2>
+    <p data-i="libDesc"></p>
+    <div class="seg-toggle tabs-x" id="libTabs">
+      <button data-c="emotes" data-i="libEmotes"></button><button data-c="banners" data-i="libBanners"></button><button data-c="avatars" data-i="libAvatars"></button>
+      <button data-c="backgrounds" data-i="libBackgrounds"></button><button data-c="images" data-i="libImages"></button><button data-c="renders" data-i="libRenders"></button>
+    </div>
+    <input class="lib-search" id="libQ" type="search">
+    <div class="lib-grid" id="libGrid"></div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="libRoot" data-i="libRoot" hidden></button>
+      <span class="grow"></span>
+      <button class="btn ghost" id="libClose" data-i="close"></button>
+    </div>
+  </div>
 </div>
 
 <!-- Import -->
@@ -161,14 +188,23 @@
   <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="mGenT">
     <h2 id="mGenT" data-i="genTitle"></h2>
     <p data-i="genDesc"></p>
-    <div class="ctl"><label for="genLang" data-i="genLang"></label>
-      <select id="genLang"><option value="fr-FR">Français</option><option value="en-US">English</option></select></div>
     <div class="ctl"><label for="genMode" data-i="genMode"></label>
       <select id="genMode"><option value="ai" data-i="modeAi"></option><option value="detect" data-i="modeDetect"></option></select></div>
+    <div class="ctl" id="genTypeRow"><label data-i="genType"></label>
+      <div class="seg-toggle" id="genType"><button data-v="speech" data-i="typeSpeech"></button><button data-v="song" data-i="typeSong"></button></div></div>
+    <div class="ctl"><label for="genLang" data-i="genLang"></label><select id="genLang"></select></div>
     <div class="ctl" id="genModelRow"><label for="genModel" data-i="genModel"></label>
-      <select id="genModel"><option value="Xenova/whisper-tiny" data-i="mTiny"></option><option value="Xenova/whisper-base" data-i="mBase" selected></option><option value="Xenova/whisper-small" data-i="mSmall"></option></select></div>
+      <select id="genModel"><option value="onnx-community/whisper-base" data-i="mBase"></option><option value="onnx-community/whisper-small" data-i="mSmall"></option><option value="onnx-community/whisper-large-v3-turbo" data-i="mTurbo"></option></select></div>
+    <div class="ctl" id="genTrackRow" hidden><label for="genTrack" data-i="genTrack"></label><select id="genTrack"></select></div>
+    <div class="ctl" id="genVadRow"><label for="genVad" data-i="genVad"></label>
+      <div class="rr"><input type="range" id="genVad" min="0" max="100" value="40"><output class="num" id="genVadO">40</output></div></div>
+    <p class="hint" id="genVadHint" data-i="genVadHint"></p>
     <div class="ctl" id="genSensRow"><label for="genSens" data-i="genSens"></label>
       <div class="rr"><input type="range" id="genSens" min="8" max="60" value="25"><output class="num" id="genSensO">25</output></div></div>
+    <div class="ctl"><label for="genRange" data-i="genRange"></label>
+      <select id="genRange"><option value="all" data-i="rangeAll"></option><option value="part" data-i="rangePart"></option><option value="custom" data-i="rangeCustom"></option></select></div>
+    <div class="ctl" id="genRangeRow" hidden><label data-i="rangeFromTo"></label>
+      <div class="rr"><input class="num wide" id="genFrom" aria-label="Début"><span class="idx">→</span><input class="num wide" id="genTo" aria-label="Fin"></div></div>
     <label class="sw"><input type="checkbox" id="genReplace" checked><i></i><span data-i="genReplace"></span></label>
     <div class="cl hint" style="margin-bottom:6px" data-i="genScript"></div>
     <textarea id="genText" placeholder=""></textarea>
@@ -239,9 +275,9 @@
     <h2 id="askT"></h2>
     <p id="askD"></p>
     <div class="modal-foot">
-      <button class="btn ghost" id="askCancel" data-i="cancel"></button>
-      <button class="btn" id="askNo" data-i="dontSave"></button>
-      <button class="btn primary" id="askYes" data-i="save"></button>
+      <button class="btn ghost" id="askCancel"></button>
+      <button class="btn" id="askNo"></button>
+      <button class="btn primary" id="askYes"></button>
     </div>
   </div>
 </div>
